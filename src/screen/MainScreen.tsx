@@ -1,9 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+} from "react";
 import { FlatList, Text, View } from "react-native";
 import SearchInput from "../components/SearchInput";
 import { Product } from "../type/Product";
 import { ApiResponse } from "../type/ApiResponse";
 import ProductCard from "../components/ProductCard";
+import cartReducer from "../reducer/cartReducer";
+import { CartItem } from "../type/CartItem";
+import CartSection from "../components/CartSection";
 
 const MainScreen = () => {
   // Search keyword
@@ -44,9 +53,19 @@ const MainScreen = () => {
     });
   }, [products, keyword]);
 
+  // Reducer for Add to cart
+  const [cartItems, dispatch] = useReducer(cartReducer, []);
+  const addToCart = useCallback((item: Product) => {
+    // Ép kiểu item thành CartItem ngay tại thời điểm gửi đi
+    dispatch({ type: "ADD_TO_CART", payload: item as CartItem });
+  }, []);
+
   return (
     <View style={{ flex: 1, padding: 20 }}>
       <SearchInput keyword={keyword} setKeyword={setKeyword} />
+
+      {/* Cart */}
+      <CartSection cartItems={cartItems} dispatch={dispatch} />
 
       {/* Hiển thị Loading */}
       {loading && (
@@ -68,7 +87,9 @@ const MainScreen = () => {
 
       <FlatList
         data={filteredProducts}
-        renderItem={({ item }) => <ProductCard item={item} />}
+        renderItem={({ item }) => (
+          <ProductCard item={item} addToCart={addToCart} />
+        )}
         keyExtractor={(item) => item.id.toString()}
       />
     </View>

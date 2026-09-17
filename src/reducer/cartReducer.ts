@@ -1,6 +1,6 @@
 import { CartItem } from "../type/CartItem";
 
-type ActionType =
+export type ActionType =
   | { type: "ADD_TO_CART"; payload: CartItem }
   | { type: "REMOVE_FROM_CART"; payload: CartItem }
   | { type: "CLEAR_CART" };
