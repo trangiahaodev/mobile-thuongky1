@@ -5,7 +5,7 @@ import React, {
   useReducer,
   useState,
 } from "react";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import SearchInput from "../components/SearchInput";
 import { Product } from "../type/Product";
 import { ApiResponse } from "../type/ApiResponse";
@@ -13,10 +13,33 @@ import ProductCard from "../components/ProductCard";
 import cartReducer from "../reducer/cartReducer";
 import { CartItem } from "../type/CartItem";
 import CartSection from "../components/CartSection";
+import { useTheme } from "../context/useTheme";
 
 const MainScreen = () => {
   // Search keyword
   const [keyword, setKeyword] = useState<string>("");
+
+  // Swipe down to refresh
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setError("");
+
+    try {
+      // Gọi lại API y hệt như lúc mount component
+      const res = await fetch("https://dummyjson.com/products?limit=20");
+      const data = await res.json();
+      setProducts(data as ApiResponse<Product>);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log(error.message);
+        setError(error.message);
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Fetch products
   const [products, setProducts] = useState<ApiResponse<Product> | null>(null);
@@ -60,9 +83,31 @@ const MainScreen = () => {
     dispatch({ type: "ADD_TO_CART", payload: item as CartItem });
   }, []);
 
+  // Toggle theme
+  const { toggleTheme } = useTheme();
+
   return (
     <View style={{ flex: 1, padding: 20 }}>
-      <SearchInput keyword={keyword} setKeyword={setKeyword} />
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 10,
+        }}>
+        <SearchInput keyword={keyword} setKeyword={setKeyword} />
+        <Pressable
+          onPress={toggleTheme}
+          style={{
+            borderWidth: 1,
+            borderColor: "#000",
+            borderRadius: 5,
+            padding: 10,
+            height: 36,
+          }}>
+          <Text>Theme</Text>
+        </Pressable>
+      </View>
 
       {/* Cart */}
       <CartSection cartItems={cartItems} dispatch={dispatch} />
@@ -91,6 +136,8 @@ const MainScreen = () => {
           <ProductCard item={item} addToCart={addToCart} />
         )}
         keyExtractor={(item) => item.id.toString()}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
       />
     </View>
   );

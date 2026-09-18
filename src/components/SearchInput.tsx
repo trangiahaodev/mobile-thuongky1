@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     width: "100%",
+    flex: 1,
   },
   input: {
     height: 36,

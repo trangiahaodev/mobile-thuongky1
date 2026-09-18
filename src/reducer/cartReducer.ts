@@ -2,6 +2,7 @@ import { CartItem } from "../type/CartItem";
 
 export type ActionType =
   | { type: "ADD_TO_CART"; payload: CartItem }
+  | { type: "DECREASE"; payload: CartItem }
   | { type: "REMOVE_FROM_CART"; payload: CartItem }
   | { type: "CLEAR_CART" };
 
@@ -27,6 +28,10 @@ export default function cartReducer(
     }
 
     case "REMOVE_FROM_CART": {
+      return state.filter((item) => item.id !== action.payload.id);
+    }
+
+    case "DECREASE": {
       const existingProduct = state.find(
         (product) => product.id === action.payload.id,
       );
